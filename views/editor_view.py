@@ -1,5 +1,5 @@
 from pathlib import Path
-
+import asyncio
 import discord
 from discord.ext import commands
 
@@ -33,21 +33,22 @@ async def generar_archivo_editor(
     fondo_bytes = ruta_fondo.read_bytes()
     avatar_bytes = await usuario.display_avatar.read()
 
-    imagen = generar_bienvenida(
-        fondo_bytes=fondo_bytes,
-        avatar_bytes=avatar_bytes,
-        nombre_usuario=usuario.display_name,
-        numero_miembro=guild.member_count or 1,
-        nombre_servidor=guild.name,
-        fondo_x=int(datos.get("background_x", 0)),
-        fondo_y=int(datos.get("background_y", 0)),
-        fondo_zoom=float(
-            datos.get("background_zoom", 1.0)
-        ),
-        avatar_x=int(datos.get("avatar_x", 0)),
-        avatar_y=int(datos.get("avatar_y", 0)),
-        avatar_size=int(datos.get("avatar_size", 235)),
-    )
+    imagen = await asyncio.to_thread(
+    generar_bienvenida,
+    fondo_bytes=fondo_bytes,
+    avatar_bytes=avatar_bytes,
+    nombre_usuario=usuario.display_name,
+    numero_miembro=guild.member_count or 1,
+    nombre_servidor=guild.name,
+    fondo_x=int(datos.get("background_x", 0)),
+    fondo_y=int(datos.get("background_y", 0)),
+    fondo_zoom=float(
+        datos.get("background_zoom", 1.0)
+    ),
+    avatar_x=int(datos.get("avatar_x", 0)),
+    avatar_y=int(datos.get("avatar_y", 0)),
+    avatar_size=int(datos.get("avatar_size", 235)),
+)
 
     return discord.File(
         imagen,

@@ -52,6 +52,8 @@ class EditorFondoView(discord.ui.View):
         zoom: float = 0.0,
         restablecer: bool = False,
     ) -> None:
+        await interaction.response.defer()
+
         datos = obtener_configuracion_servidor(
             self.guild.id
         )
@@ -101,16 +103,22 @@ class EditorFondoView(discord.ui.View):
                 self.usuario,
             )
 
-            await interaction.response.edit_message(
+            await interaction.edit_original_response(
                 content=self.texto_estado(datos),
                 attachments=[archivo],
                 view=self,
             )
 
         except Exception as error:
-            await interaction.response.send_message(
-                f"❌ No se pudo actualizar el fondo: `{error}`",
-                ephemeral=True,
+            print(f"Error editor fondo: {error}")
+
+            await interaction.edit_original_response(
+                content=(
+                    "❌ No se pudo actualizar el fondo:\n"
+                    f"`{error}`"
+                ),
+                attachments=[],
+                view=self,
             )
 
     @discord.ui.button(
@@ -123,7 +131,10 @@ class EditorFondoView(discord.ui.View):
         interaction: discord.Interaction,
         button: discord.ui.Button,
     ) -> None:
-        await self.cambiar(interaction, mover_y=-40)
+        await self.cambiar(
+            interaction,
+            mover_y=-40,
+        )
 
     @discord.ui.button(
         emoji="⬅️",
@@ -135,7 +146,10 @@ class EditorFondoView(discord.ui.View):
         interaction: discord.Interaction,
         button: discord.ui.Button,
     ) -> None:
-        await self.cambiar(interaction, mover_x=-40)
+        await self.cambiar(
+            interaction,
+            mover_x=-40,
+        )
 
     @discord.ui.button(
         label="Restablecer",
@@ -163,7 +177,10 @@ class EditorFondoView(discord.ui.View):
         interaction: discord.Interaction,
         button: discord.ui.Button,
     ) -> None:
-        await self.cambiar(interaction, mover_x=40)
+        await self.cambiar(
+            interaction,
+            mover_x=40,
+        )
 
     @discord.ui.button(
         emoji="⬇️",
@@ -175,7 +192,10 @@ class EditorFondoView(discord.ui.View):
         interaction: discord.Interaction,
         button: discord.ui.Button,
     ) -> None:
-        await self.cambiar(interaction, mover_y=40)
+        await self.cambiar(
+            interaction,
+            mover_y=40,
+        )
 
     @discord.ui.button(
         label="Alejar",
@@ -188,7 +208,10 @@ class EditorFondoView(discord.ui.View):
         interaction: discord.Interaction,
         button: discord.ui.Button,
     ) -> None:
-        await self.cambiar(interaction, zoom=-0.10)
+        await self.cambiar(
+            interaction,
+            zoom=-0.10,
+        )
 
     @discord.ui.button(
         label="Acercar",
@@ -201,7 +224,10 @@ class EditorFondoView(discord.ui.View):
         interaction: discord.Interaction,
         button: discord.ui.Button,
     ) -> None:
-        await self.cambiar(interaction, zoom=0.10)
+        await self.cambiar(
+            interaction,
+            zoom=0.10,
+        )
 
     @discord.ui.button(
         label="Volver",
@@ -216,19 +242,38 @@ class EditorFondoView(discord.ui.View):
     ) -> None:
         from views.editor_view import EditorPrincipalView
 
+        await interaction.response.defer()
+
         vista = EditorPrincipalView(
             bot=self.bot,
             guild=self.guild,
             usuario=self.usuario,
         )
 
-        archivo = await generar_archivo_editor(
-            self.guild,
-            self.usuario,
-        )
+        try:
+            archivo = await generar_archivo_editor(
+                self.guild,
+                self.usuario,
+            )
 
-        await interaction.response.edit_message(
-            content=vista.texto_principal(),
-            attachments=[archivo],
-            view=vista,
-        )
+            await interaction.edit_original_response(
+                content=vista.texto_principal(),
+                attachments=[archivo],
+                view=vista,
+            )
+
+        except Exception as error:
+            print(f"Error al volver al editor principal: {error}")
+
+            await interaction.edit_original_response(
+                content=(
+                    "❌ No se pudo volver al editor principal:\n"
+                    f"`{error}`"
+                ),
+                attachments=[],
+                view=self,
+            )
+
+    async def on_timeout(self) -> None:
+        for componente in self.children:
+            componente.disabled = True
