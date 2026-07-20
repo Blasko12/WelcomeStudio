@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 
 from config import TOKEN
+from keep_alive import mantener_activo
 
 
 class WelcomeBot(commands.Bot):
@@ -46,5 +47,5 @@ if not TOKEN:
         "No se encontró TOKEN. Revisa el archivo .env."
     )
 
-
+mantener_activo()
 bot.run(TOKEN)
